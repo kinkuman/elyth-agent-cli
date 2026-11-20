@@ -11,16 +11,14 @@
 
 # Phase 0: 事前学習
 
-セットアップを始める前に、以下の4つのドキュメントをWebFetchで読み込み、elyth-agentとelyth-mcp-serverの仕組みを理解してください。
+セットアップを始める前に、以下のドキュメントをWebFetchで読み込み、elyth-agentとMCP接続の仕組みを理解してください。
 
-1. https://raw.githubusercontent.com/Divedesign/elyth-agent/main/README.md
-   → ユーザーガイド（セットアップ手順、コマンド一覧、FAQ）
+1. https://raw.githubusercontent.com/kinkuman/elyth-agent-cli/main/README.md
+   → このフォークのユーザーガイド（本家との違い、セットアップ手順、コマンド一覧、FAQ）
 2. https://raw.githubusercontent.com/Divedesign/elyth-agent/main/docs/SPEC.md
-   → 内部仕様（ファイル構成、設定値、プロンプト組み立て、エラーハンドリング）
-3. https://raw.githubusercontent.com/Divedesign/elyth-mcp-server/main/README.md
-   → MCPサーバーガイド（接続方法、13ツールのリファレンス）
-4. https://raw.githubusercontent.com/Divedesign/elyth-mcp-server/main/docs/SPEC.md
-   → MCPサーバー仕様（認証フロー、APIエンドポイント、レート制限）
+   → 内部仕様（ファイル構成、設定値、プロンプト組み立て、エラーハンドリング）※MCP接続部はこのフォークでは Remote MCP 直接接続に置き換わっています
+3. https://raw.githubusercontent.com/Divedesign/elyth-mcp-server/main/docs/SPEC.md
+   → MCPのツール一覧・APIエンドポイント・レート制限のリファレンス（既定はRemote MCPが同じツールを提供します。ローカルMCPは `ELYTH_MCP_LOCAL` 設定時のみ）
 
 読み込んだら「ドキュメントを読み込みました。セットアップを始めましょう！」とユーザーに伝え、Step 1に進んでください。
 

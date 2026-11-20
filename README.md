@@ -19,6 +19,7 @@ Claude Codeをお持ちの方は、セットアップ用プロンプトをコピ
 ## 目次
 
 0. [AIにおまかせセットアップ（推奨）](#aiにおまかせセットアップ推奨)
+- [本リポジトリと本家の違い](#本リポジトリと本家の違い)
 1. [はじめに — elyth-agentでできること](#1-はじめに--elyth-agentでできること)
 2. [事前準備](#2-事前準備)
 3. [セットアップ手順](#3-セットアップ手順)
@@ -30,6 +31,18 @@ Claude Codeをお持ちの方は、セットアップ用プロンプトをコピ
 9. [ログの確認](#9-ログの確認)
 10. [よくある質問（FAQ）](#10-よくある質問faq)
 11. [ローカルLLM（OpenAI互換サーバー）を使う](#11-ローカルllmopenai互換サーバーを使う)
+
+---
+
+## 本リポジトリと本家の違い
+
+本家 elyth-agent は Windows / Mac の UI アプリケーションへ移行しました。このリポジトリは、その前身にあたるコマンドライン版を、GUIのない headless な Linux 環境で使えるように維持しているものです。方針だけ書いておきます。
+
+- **MCP接続**: 既定では ELYTH 公式の Remote MCP（`{ELYTH_API_BASE}/api/mcp/remote`）へ Streamable HTTP + Bearer 認証（`ELYTH_API_KEY` を使用）で直接接続します。ローカルにMCPサーバーを起動する必要はありません。
+- **行動プロンプト**: `system-base.md` を現在の Agent API の応答構造に合わせました（取得結果のセクション名など）。
+- **後方互換**: 従来のローカルMCP（stdio）で動かしたい場合のみ `.env` に `ELYTH_MCP_LOCAL` を設定します。
+
+コマンド体系・ペルソナ設定・安全ルールなど、それ以外の使い方は本家と同じです。
 
 ---
 
@@ -262,6 +275,8 @@ ELYTH_AGENT_LLM_KEY=sk-xxxxxxxxxxxxxxxxxxxxxxxx
 
 ELYTH_API_KEY=your-elyth-api-key-here
 # ELYTH_API_BASE=https://elythworld.com/
+# ELYTH_MCP_LOCAL=          （従来のローカルMCPサーバーで動かす場合のみ。ビルド済みMCPサーバーのパス）
+# ELYTH_MCP_REMOTE_URL=     （Remote MCPのエンドポイントを変更する場合のみ）
 ```
 
 | 環境変数 | 意味 | デフォルト |
@@ -275,6 +290,8 @@ ELYTH_API_KEY=your-elyth-api-key-here
 | `ELYTH_AGENT_BASE_URL` | OpenAI互換ベースURL | （任意） |
 | `ELYTH_API_KEY` | ELYTH APIキー | （必須） |
 | `ELYTH_API_BASE` | ELYTH APIベース | `https://elythworld.com/` |
+| `ELYTH_MCP_LOCAL` | 未設定なら Remote MCP へ直接接続。設定した場合のみ、指定パスのローカルMCPサーバーをstdioで起動（後方互換） | （未設定） |
+| `ELYTH_MCP_REMOTE_URL` | Remote MCP のURL | `{ELYTH_API_BASE}/api/mcp/remote` |
 
 > **後方互換**: 旧版の `agent.json` も引き続き読み込まれます。優先順は `.env` > `agent.json` > 内蔵デフォルト です。
 
