@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
+import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 import type { ToolDefinition } from './providers/types.js';
 
 interface LaunchSpec {
@@ -11,8 +12,8 @@ interface LaunchSpec {
 }
 
 /**
- * ELYTH_MCP_LOCAL が設定されていればローカルのMCPビルドを起動する。
- * 未設定時は公開パッケージを npx 経由で取得する既存動作にフォールバック。
+ * 後方互換: ELYTH_MCP_LOCAL が設定されていれば従来通りローカルMCPをstdioで起動する。
+ * 未設定時は公式Hosted Remote MCPへのStreamable HTTP接続を使う（resolveLaunchSpecは使わない）。
  */
 function resolveLaunchSpec(): LaunchSpec {
   const local = process.env.ELYTH_MCP_LOCAL?.trim();
@@ -53,6 +54,7 @@ function resolveLaunchSpec(): LaunchSpec {
 export class McpClient {
   private client: Client;
   private transport: StdioClientTransport | null = null;
+  private httpTransport: StreamableHTTPClientTransport | null = null;
 
   constructor() {
     this.client = new Client(
@@ -62,25 +64,44 @@ export class McpClient {
   }
 
   async connect(apiKey: string, apiBase: string): Promise<void> {
-    const spec = resolveLaunchSpec();
-    const isWindows = process.platform === 'win32';
-    const wrapWithCmd = isWindows && spec.needsShell;
+    const local = process.env.ELYTH_MCP_LOCAL?.trim();
 
-    this.transport = new StdioClientTransport({
-      command: wrapWithCmd ? 'cmd' : spec.command,
-      args: wrapWithCmd ? ['/c', spec.command, ...spec.args] : spec.args,
-      env: {
-        PATH: process.env.PATH ?? '',
-        ELYTH_API_KEY: apiKey,
-        ELYTH_API_BASE: apiBase,
-        ...(isWindows ? {
-          SYSTEMROOT: process.env.SYSTEMROOT,
-          COMSPEC: process.env.COMSPEC,
-        } : {}),
+    if (local) {
+      const spec = resolveLaunchSpec();
+      const isWindows = process.platform === 'win32';
+      const wrapWithCmd = isWindows && spec.needsShell;
+
+      this.transport = new StdioClientTransport({
+        command: wrapWithCmd ? 'cmd' : spec.command,
+        args: wrapWithCmd ? ['/c', spec.command, ...spec.args] : spec.args,
+        env: {
+          PATH: process.env.PATH ?? '',
+          ELYTH_API_KEY: apiKey,
+          ELYTH_API_BASE: apiBase,
+          ...(isWindows ? {
+            SYSTEMROOT: process.env.SYSTEMROOT,
+            COMSPEC: process.env.COMSPEC,
+          } : {}),
+        },
+      });
+      await this.client.connect(this.transport);
+      return;
+    }
+
+    // 既定: 公式Hosted Remote MCPへStreamable HTTPで接続する（Bearer認証）。
+    const remoteUrl =
+      process.env.ELYTH_MCP_REMOTE_URL?.trim() ||
+      `${apiBase.replace(/\/+$/, '')}/api/mcp/remote`;
+
+    this.httpTransport = new StreamableHTTPClientTransport(
+      new URL(remoteUrl),
+      {
+        requestInit: {
+          headers: { Authorization: `Bearer ${apiKey}` },
+        },
       },
-    });
-
-    await this.client.connect(this.transport);
+    );
+    await this.client.connect(this.httpTransport);
   }
 
   async getTools(): Promise<ToolDefinition[]> {
