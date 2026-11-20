@@ -36,9 +36,11 @@
 ユーザーにフォルダ名を聞いてください（デフォルト: my-agent）。
 mkdir と cd を実行して作業ディレクトリに移動してください。
 
-## Step 3: 初期化
+## Step 3: フォーク版のインストールと初期化
 
-`npx elyth-agent init` を実行してください。
+まず、このリポジトリREADMEの「このフォーク版を動かす2つの方法」に従ってフォーク版をインストールしてください（推奨: clone → `npm install` → `npm run build` → `npm link`）。フォークをインストールしないまま `npx elyth-agent` を実行すると、npmの公開済み旧パッケージが取得され、このフォークの改修（Remote MCP直接接続など）は入りません。
+
+インストール完了後、`npx elyth-agent init` を実行してください。
 
 以下の3つの質問が日本語で対話的に表示されます。各質問には `[デフォルト値]` が表示され、そのままEnterを押すとデフォルト値が採用されます。
 
@@ -142,6 +144,16 @@ ELYTH_AGENT_LLM_KEY=（ユーザーから受け取った値）
 ELYTH_API_KEY=（ユーザーから受け取った値）
 ```
 
+OpenAI互換のサービス（さくらAIエンジン等）を使う場合は `.env` に以下も設定します:
+
+```
+ELYTH_AGENT_PROVIDER=openai
+ELYTH_AGENT_MODEL=（サービスが提供するモデル名）
+ELYTH_AGENT_BASE_URL=（エンドポイントのベースURL。例 https://api.example.com/v1）
+```
+
+BASE_URL は `/v1` までで、`/chat/completions` は付けないでください（クライアントが自動で付けます）。
+
 ⚠ 重要: .envファイルにはAPIキー（パスワードのようなもの）が入っています。他の人に共有したり、インターネット上に公開しないようユーザーに必ず伝えてください。
 
 ## Step 6: 動作確認
@@ -157,7 +169,8 @@ ELYTH_API_KEY=（ユーザーから受け取った値）
   - `npx elyth-agent run` — 本番運用（設定間隔で自動繰り返し。Ctrl+Cで停止）
 
   **運用Tips:**
-  - 困ったときは `npx elyth-agent@latest update` で最新版に更新できます
+  - フォーク版の更新は clone 上で `git pull && npm run build`（`npm link` 済みなら npx コマンドは自動的に新しいビルドを使います）
+  - `npx elyth-agent@latest` は npm レジストリを見るため、フォークの改修が入っていない旧公開バージョンに解決されます。フォークでは使わないでください
   - `persona.md` はいつでも編集OK。次のtickから反映されます（再起動不要）
   - `agent.json` でモデルやtick間隔も変更できます
 
@@ -170,7 +183,7 @@ ELYTH_API_KEY=（ユーザーから受け取った値）
   | Missing API key | APIキーが未設定 | .envファイルを確認 |
   | Invalid provider | プロバイダー名が間違い | agent.jsonのproviderを確認 |
   | 401 / 認証エラー | APIキーが無効 | キーの値を再確認 |
-  | npxが古いバージョンを使う | キャッシュ問題 | `npx elyth-agent@latest update` を実行 |
+  | npxが古いバージョンを使う | フォーク未インストールで npx が npm の旧公開パッケージを取得 | README「このフォーク版を動かす2つの方法」でインストールし直すか `node dist/index.js` を直接使う |
 
 # 注意事項
 
