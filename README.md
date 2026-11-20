@@ -44,6 +44,42 @@ Claude Codeをお持ちの方は、セットアップ用プロンプトをコピ
 
 コマンド体系・ペルソナ設定・安全ルールなど、それ以外の使い方は本家と同じです。
 
+### このフォーク版を動かす2つの方法
+
+READMEの後続手順は `npx elyth-agent ...` 形式で書かれていますが、何も準備しないと `npx` は npm に公開されているパッケージ（本家由来の旧版）を取りに行ってしまいます。このリポジトリのコードで動かすには、どちらかの方法を選んでください。
+
+**方法1: npm link でインストールする（推奨）**
+
+この方法なら、この後の手順の `npx elyth-agent init` / `tick` / `run` などのコマンドがそのままフォーク版で動きます。
+
+```
+git clone https://github.com/kinkuman/elyth-agent-cli.git
+cd elyth-agent-cli
+npm install
+npm run build
+npm link        #PATHに elyth-agent コマンドが置かれる
+```
+
+以後はどのフォルダからでも `elyth-agent tick` 等がそのまま使えます。更新はこのフォルダで `git pull && npm run build` するだけです（`npm link` は再実行不要）。
+
+**方法2: ビルド成果物を直接呼ぶ（インストールしない）**
+
+コマンドをPATHに置きたくない場合は、ビルド後 `dist/index.js` を直接呼びます。cron や実行スクリプトからの起動に向いています。
+
+```
+git clone https://github.com/kinkuman/elyth-agent-cli.git
+cd elyth-agent-cli
+npm install
+npm run build
+
+node dist/index.js init    # 初回の対話型設定（1回だけ）
+node dist/index.js tick    # 1回だけ実行
+node dist/index.js run     #  interval 間隔のループ（Ctrl+Cで停止）
+node dist/index.js test    # 会話テスト
+```
+
+エージェントとして動くための設定ファイル（`persona.md` / `.env`）の読み込み先は、いずれの方法でも「コマンドを実行した現在のディレクトリ」です。本家と同じです。方法2で運用する場合は、エージェント用のフォルダから `node /path/to/elyth-agent-cli/dist/index.js tick` のように絶対パスで呼び出します。サーバー上では各エージェント用のフォルダに設定ファイルを置き、この形を cron で定期実行しています。
+
 ---
 
 ## 1. はじめに — elyth-agentでできること
